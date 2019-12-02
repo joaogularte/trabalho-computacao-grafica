@@ -2,6 +2,9 @@ import numpy as np
 import cv2 as cv
 import utils
 
+"""print(img.shape)"""
+""" (numero de linhas, numero de colunhas, o item da linha x coluna espeficica)"""
+
 def getDimensions(img):
     return {
         'high': img.shape[0],
@@ -16,24 +19,39 @@ def cutImage(img, width):
         'partTwo': img[:, sizePart:sizePart*(PARTS-1)],
         'partThree': img[:, sizePart*(PARTS-1) : sizePart*PARTS ]
     } 
-    
-"""print(img.shape)"""
-""" (numero de linhas, numero de colunhas, o item da linha x coluna espeficica)"""
+
+def addBsplinesToBottomRightCorner(bsplines, img, bsplinesDimensions, imgDimensions):
+    img[imgDimensions['high'] - bsplinesDimensions['high'] : imgDimensions['high'], 
+        imgDimensions['width'] - bsplinesDimensions['width'] : imgDimensions['width']] = bsplines
+    return img
+
+def addBsplinesToBottomLeftCorner(bsplines, img, bsplinesDimensions, imgDimensions):
+    img[imgDimensions['high'] - bsplinesDimensions['high'] : imgDimensions['high'],
+        0 : bsplinesDimensions['width']] = bsplines
+    return img
+
+def addBsplinesToBottomLeftAndRightCorner(bsplines, img, bsplinesDimensions, imgDimensions):
+    imgAlmost = addBsplinesToBottomLeftCorner(bsplines, img, bsplinesDimensions, imgDimensions)
+    imgComplete = addBsplinesToBottomRightCorner(bsplines, imgAlmost, bsplinesDimensions, imgDimensions)
+    return imgComplete
+
 
 img = cv.imread('./1543245201_231440_1543245268_noticia_normal.jpg')
-print(getDimensions(img))
+bsplines = cv.imread('./bspline3.png')
 
-HIGH = img.shape[0]
-WIDTH = img.shape[1]
+imgDimen = getDimensions(img)
+bsplineDimen = getDimensions(bsplines)
 
-firstPart = img[:, 0:400]
-secondPart = img[:, 400:800] 
-thirdPart = img[:, 800:1200]
+imgParts = cutImage(img, imgDimen['width'])
 
-color = tuple((0, 0, 0))
 
-cv.line(firstPart, (100,300), (400,300), color, 2, )
+newPartOne = addBsplinesToBottomRightCorner(bsplines, imgParts['partOne'], bsplineDimen, getDimensions(imgParts['partOne']))
+newPartTwo = addBsplinesToBottomLeftAndRightCorner(bsplines, imgParts['partTwo'], bsplineDimen, getDimensions(imgParts['partTwo']))
+newPartThree = addBsplinesToBottomLeftCorner(bsplines, imgParts['partThree'], bsplineDimen, getDimensions(imgParts['partThree']))
 
-newImg = np.concatenate((firstPart, secondPart, thirdPart), axis=1)
-cv.imshow('test', firstPart)
+newImage = np.concatenate((newPartOne, newPartTwo, newPartThree), axis=1)
+
+cv.imshow('test', newImage)
 cv.waitKey(0)
+
+#imageParts = cutImage(img, dimensions['width'])
