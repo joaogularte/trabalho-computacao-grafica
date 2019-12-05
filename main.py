@@ -2,6 +2,20 @@ import numpy as np
 import cv2 as cv
 import utils
 import matplotlib.pyplot as plt
+import qrcode
+
+def createQrcode():
+    qr = qrcode.QRCode(
+        box_size=2
+    )
+    qr.add_data('Joao Vitor Gularte, Tcharles Ubiratan Clunk')
+    qr.make()
+    img_qr = qr.make_image()
+    img_qr.save("qrcode.png")
+
+def applyQrcode(qrcode, img, qrcodeD):
+    img[0: qrcodeD['high'],  0 : qrcodeD['width']] = qrcode
+    return img
 
 """
     Retorna as dimensões de uma imagem 
@@ -109,8 +123,14 @@ def makeStitch(setOfImages):
     s, r = stitcher.stitch(setOfImages)
     return r
 
+createQrcode()
 img = cv.imread('./1.png')
 bsplines = cv.imread('./bspline2.jpg')
+qr_code = cv.imread('./qrcode.png')
+imgCopy = img
+imgWithQrcode = applyQrcode(qr_code, imgCopy, getDimensions(qr_code))
+cv.imshow('img with qrcode', imgWithQrcode)
+cv.waitKey(0)
 
 imgDimen = getDimensions(img)
 bsplineDimen = getDimensions(bsplines)
